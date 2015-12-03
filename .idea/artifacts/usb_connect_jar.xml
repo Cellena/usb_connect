@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="usb_connect:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/usb_connect_jar</output-path>
+    <root id="archive" name="usb_connect.jar">
+      <element id="module-output" name="usb_connect" />
+    </root>
+  </artifact>
+</component>

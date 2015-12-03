@@ -9,8 +9,8 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         try {
-            Runtime.getRuntime().exec("C:\\Users\\iSuhar\\AppData\\Local\\Android\\sdk\\platform-tools\\adb.exe forward tcp:59900 tcp:59900");
-            System.out.print("Send hello");
+            Runtime.getRuntime().exec("C:\\Users\\iSuhar\\AppData\\Local\\Android\\sdk\\platform-tools\\adb.exe -s 4df1e04c18e05fdb forward tcp:59900 tcp:59900");
+            System.out.println("Send hello");
             socket = new Socket("127.0.0.1", 59900);
 
             System.out.println("Socket Created");
