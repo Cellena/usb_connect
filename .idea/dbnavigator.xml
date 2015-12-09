@@ -2,7 +2,7 @@
 <project version="4">
   <component name="DBNavigator.Project.DataEditorManager">
     <record-view-column-sorting-type value="BY_INDEX" />
-    <value-preview-text-wrapping value="true" />
+    <value-preview-text-wrapping value="false" />
     <value-preview-pinned value="false" />
   </component>
   <component name="DBNavigator.Project.DataExportManager">
@@ -24,6 +24,23 @@
     <show-object-properties value="true" />
     <loaded-nodes />
   </component>
+  <component name="DBNavigator.Project.DatabaseConsoleManager">
+    <connection id="6f807f77-29f3-474c-84b6-16c91b597de8">
+      <console name="Connection" type="STANDARD"><![CDATA[select distinct ast.location, ast.DESCRIPTION, afs.tablevalue, ast.siteid  from maximo.asset   AST
+join MAXIMO.ASSETLOCRELATION ALR ON ast.assetnum=alr.TARGETASSETNUM and ast.siteid=alr.siteid and ALR.TARGETASSETNUM IS NOT NULL
+JOIN MAXIMO.ASSETFEATURESPEC AFS ON AFS.ASSETATTRID='PCH_ECH' and AFS.FEATURE='Р“Р РћРў_РџР Р•Р”РџР Р�РЇРўР�РЇ' AND AFS.ASSETNUM=ALR.SOURCEASSETNUM AND AFS.SITEID=ALR.SITEID
+       WHERE  (
+                 (ALR.SOURCESTARTMEASURE > AFS.STARTMEASURE AND ALR.SOURCESTARTMEASURE < AFS.ENDMEASURE)
+OR (ALR.SOURCEENDMEASURE > AFS.STARTMEASURE AND ALR.SOURCEENDMEASURE < AFS.ENDMEASURE)
+                 OR (AFS.STARTMEASURE > ALR.SOURCESTARTMEASURE AND AFS.STARTMEASURE < ALR.SOURCEENDMEASURE)
+                 OR (AFS.ENDMEASURE > ALR.SOURCESTARTMEASURE AND AFS.ENDMEASURE < ALR.SOURCEENDMEASURE)
+                 OR (AFS.STARTMEASURE = ALR.SOURCESTARTMEASURE AND AFS.ENDMEASURE = ALR.SOURCEENDMEASURE)
+                 OR (AFS.STARTMEASURE = ALR.SOURCESTARTMEASURE AND AFS.STARTMEASURE = ALR.SOURCEENDMEASURE)
+                 OR (AFS.ENDMEASURE = ALR.SOURCESTARTMEASURE AND AFS.ENDMEASURE = ALR.SOURCEENDMEASURE)
+             )
+   and  ast.itemnum='Р“РџРџРЎ'      and status='Р РђР‘РћРўРђР•Рў' ;]]></console>
+    </connection>
+  </component>
   <component name="DBNavigator.Project.MethodExecutionManager">
     <method-browser />
     <execution-history>
@@ -43,7 +60,81 @@
     <recently-used-interfaces />
   </component>
   <component name="DBNavigator.Project.Settings">
-    <connections />
+    <connections>
+      <connection id="6f807f77-29f3-474c-84b6-16c91b597de8" active="true">
+        <database>
+          <name value="Connection" />
+          <description value="" />
+          <database-type value="ORACLE" />
+          <config-type value="BASIC" />
+          <database-version value="10.2" />
+          <driver-source value="BUILTIN" />
+          <driver-library value="" />
+          <driver value="" />
+          <host value="odin.gvc.oao.rzd" />
+          <port value="1521" />
+          <database value="ctginst1" />
+          <url-type value="SID" />
+          <os-authentication value="false" />
+          <user value="mihaylov" />
+          <password value="aW5pdDEyMzQ=" />
+        </database>
+        <properties>
+          <auto-commit value="false" />
+        </properties>
+        <ssh-settings>
+          <active value="false" />
+          <proxy-host value="" />
+          <proxy-port value="22" />
+          <proxy-user value="" />
+          <proxy-password value="" />
+          <auth-type value="PASSWORD" />
+          <key-file value="" />
+          <key-passphrase value="" />
+        </ssh-settings>
+        <details>
+          <charset value="UTF-8" />
+          <ddl-file-binding value="true" />
+          <database-logging value="true" />
+          <environment-type value="default" />
+          <idle-time-to-disconnect value="30" />
+          <password-expiry-time value="10" />
+          <max-connection-pool-size value="7" />
+          <alternative-statement-delimiter value="" />
+          <connect-automatically value="true" />
+        </details>
+        <object-filters hide-empty-schemas="false">
+          <object-type-filter use-master-settings="true">
+            <object-type name="SCHEMA" enabled="true" />
+            <object-type name="USER" enabled="true" />
+            <object-type name="ROLE" enabled="true" />
+            <object-type name="PRIVILEGE" enabled="true" />
+            <object-type name="CHARSET" enabled="true" />
+            <object-type name="TABLE" enabled="true" />
+            <object-type name="VIEW" enabled="true" />
+            <object-type name="MATERIALIZED VIEW" enabled="true" />
+            <object-type name="NESTED TABLE" enabled="true" />
+            <object-type name="COLUMN" enabled="true" />
+            <object-type name="INDEX" enabled="true" />
+            <object-type name="CONSTRAINT" enabled="true" />
+            <object-type name="TRIGGER" enabled="true" />
+            <object-type name="TRIGGER" enabled="true" />
+            <object-type name="SYNONYM" enabled="true" />
+            <object-type name="SEQUENCE" enabled="true" />
+            <object-type name="PROCEDURE" enabled="true" />
+            <object-type name="FUNCTION" enabled="true" />
+            <object-type name="PACKAGE" enabled="true" />
+            <object-type name="TYPE" enabled="true" />
+            <object-type name="TYPE ATTRIBUTE" enabled="true" />
+            <object-type name="ARGUMENT" enabled="true" />
+            <object-type name="DIMENSION" enabled="true" />
+            <object-type name="CLUSTER" enabled="true" />
+            <object-type name="DBLINK" enabled="true" />
+          </object-type-filter>
+          <object-name-filters />
+        </object-filters>
+      </connection>
+    </connections>
     <browser-settings>
       <general>
         <display-mode value="TABBED" />
