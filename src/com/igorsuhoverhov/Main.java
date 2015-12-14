@@ -9,67 +9,89 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class Main {
 
     private static Socket socket;
+    private static PrintWriter out;
+    private static BufferedReader in;
+    private static String adbPath = "C:\\Users\\Igor.Suhoverhov\\AppData\\Local\\Android\\sdk\\platform-tools\\adb";
 
     public static void main(String[] args) throws IOException {
+        System.setProperty("file.encoding", "UTF8");
         try {
             //Runtime.getRuntime().exec("adb.exe forward tcp:59900 tcp:59900");
             //Runtime.getRuntime().exec("C:\\Users\\Igor.Suhoverhov\\AppData\\Local\\Android\\sdk\\platform-tools\\adb.exe forward tcp:59900 tcp:59900");
-            Runtime.getRuntime().exec("C:\\Users\\Igor.Suhoverhov\\AppData\\Local\\Android\\sdk\\platform-tools\\adb -s 4df1e04c18e05fdb forward tcp:59900 tcp:59900");
-            System.out.println("Send hello");
-            socket = new Socket("127.0.0.1", 59900);
+                System.out.println("Wait for device...");
+                Runtime.getRuntime().exec(adbPath + " wait-for-device").waitFor();
+                BufferedReader mDevices = new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(adbPath + " devices").getInputStream()));
+                String buffer = null;
+                String device;
+                boolean check = false;
+                while ((buffer = mDevices.readLine()) != null) {
 
-            System.out.println("Socket Created");
-            final PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            out.println("hey");
+                    if (check) {
+                        System.out.println(buffer);
+                        device = buffer;
+                    } else if (buffer.equals("List of devices attached")) check = true;
+                }
 
-            new Thread(new Runnable() {
+                Runtime.getRuntime().exec(adbPath + " -s 4d008003402130cb forward tcp:59900 tcp:59900").waitFor();
 
-                @Override
-                public void run() {
-                    System.out.println("\nReading From Server");
-                    BufferedReader in = null;
-                    try {
-                        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-                        String buffer;
-                        while ((buffer = in.readLine()) != null) {
-                            System.out.println(buffer);
-                            if (buffer.equals("soap")) {
-                                out.println(excuteSoap("http://10.35.38.42:81/meaweb/os/KMO_STATION_NSI", "'STAN_20319'"));
+                System.out.println("Wait for connect...");
+                do {
+                    socket = new Socket("127.0.0.1", 59900);
+                    out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true);
+                    in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    buffer = in.readLine();
+                    if (buffer != null) break;
+                } while (buffer == null);
+                System.out.println("Socket Created");
+
+                new Thread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        System.out.println("\nReading From Server");
+                        try {
+
+                            String buffer;
+                            String check = null;
+                            while ((buffer = in.readLine()) != null) {
+                                System.out.println(buffer);
+                                if (buffer.equals("soap")) {
+                                    check = "soap";
+                                } else if (buffer.equals("putSoap")) {
+                                    check = "putSoap";
+                                } else if (check == null) {
+                                    out.println(excuteGet(buffer));
+                                } else if (check.equals("soap")) {
+                                    out.println(excuteSoap("http://10.35.38.42:81/meaweb/os/KMO_STATION_NSI", "'" + buffer + "'"));
+                                    check = null;
+                                } else if (check.equals("putSoap")) {
+                                    out.println(putSoap("http://10.35.38.42:81/meaweb/ss/KMO", buffer));
+                                    check = null;
+                                }
+                                out.println("buy");
                             }
-                            else {
-                                out.println(excuteGet(buffer));
-                            }
-                            out.println("buy");
+                            socket.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
 
-                }
-            }).start();
-
-            Thread closeSocketOnShutdown = new Thread() {
-                public void run() {
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
-                }
-            };
-            Runtime.getRuntime().addShutdownHook(closeSocketOnShutdown);
+                }).start();
         }
         catch (UnknownHostException e) {
             System.out.println("Socket connection problem (Unknown host)" + e.getStackTrace());
         } catch (IOException e) {
             System.out.println("Could not initialize I/O on socket " + e.getStackTrace());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        System.in.read();
     }
     public  static String excuteGet(String mUrl){
         URL yahoo = null;
@@ -94,6 +116,82 @@ public class Main {
         }
         return full;
     }
+    public  static String putSoap (String mUrl, String params){
+        String full = "";
+
+            /*
+            <max:kmocreateIncident xmlns:max="http://www.ibm.com/maximo">
+                <max:jsonStringIncident>{}</max:jsonStringIncident>
+            </max:kmocreateIncident>
+             */
+
+        try {
+            URL u = new URL(mUrl);
+            URLConnection uc = u.openConnection();
+            HttpURLConnection connection = (HttpURLConnection) uc;
+
+            connection.setDoOutput(true);
+            connection.setDoInput(true);
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Accept-Language", "ru-RU,en;q=0.5");
+            connection.setRequestProperty("Accept-Encoding", "gzip,deflate");
+            connection.setRequestProperty("Content-Type", "text/xml;charset=UTF-8");
+            connection.setRequestProperty("Content-Type", "text/xml;charset=UTF-8");
+            connection.setRequestProperty("SoapAction", "");
+            //connection.setRequestProperty("SOAPAction", mUrl);
+
+            OutputStream out = connection.getOutputStream();
+
+
+           String req = "<max:kmocreateIncident xmlns:max=\"http://www.ibm.com/maximo\"><max:jsonStringIncident> "+ params +"</max:jsonStringIncident> </max:kmocreateIncident> ";
+            System.out.println(req);
+
+            //connection.setDoOutput(true);
+            DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
+            wr.write(req.getBytes("UTF-8"));
+            wr.flush();
+            wr.close();
+
+
+            InputStream in = connection.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+
+            String inputLine;
+            while ((inputLine = br.readLine()) != null) {
+                //System.out.println(inputLine);
+                full += inputLine;
+            }
+            br.close();
+            in.close();
+
+            DocumentBuilder db = null;
+            try {
+                db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+
+                InputSource is = new InputSource();
+                is.setCharacterStream(new StringReader(full));
+
+                Document doc = null;
+
+                doc = db.parse(is);
+                NodeList nodes = doc.getElementsByTagName("jsonResponse");
+                Element element = (Element) nodes.item(0);
+                full = getCharacterDataFromElement(element);
+                //System.out.println("Title: " + full);
+
+            } catch (ParserConfigurationException | SAXException | IOException e) {
+                e.printStackTrace();
+                //full = e.getMessage();
+            }
+
+        }
+        catch (IOException e) {
+            System.err.println(e);
+            //full = e.getMessage();
+        }
+
+        return full;
+    }
     public  static String excuteSoap (String mUrl, String params){
         String full = "";
 
@@ -114,6 +212,11 @@ public class Main {
             connection.setDoInput(true);
             connection.setRequestMethod("POST");
             //connection.setRequestProperty("SOAPAction", mUrl);
+            connection.setRequestProperty("Accept-Language", "ru-RU,en;q=0.5");
+            connection.setRequestProperty("Accept-Encoding", "gzip,deflate");
+            connection.setRequestProperty("Content-Type", "text/xml;charset=UTF-8");
+            connection.setRequestProperty("Content-Type", "text/xml;charset=UTF-8");
+            connection.setRequestProperty("SoapAction", "");
 
             OutputStream out = connection.getOutputStream();
             Writer wout = new OutputStreamWriter(out);
@@ -131,7 +234,7 @@ public class Main {
             wout.close();
 
             InputStream in = connection.getInputStream();
-            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 
             String inputLine;
             while ((inputLine = br.readLine()) != null) {
@@ -168,7 +271,7 @@ public class Main {
 
         } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
-            full = e.getMessage();
+            //full = e.getMessage();
         }
 
         return full;
